@@ -5,11 +5,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/mask1"
-        android:title="Data Mask"
+        android:id="@+id/Reset"
+        android:title="@string/reset"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/mask2"
-        android:title="Landmark Mask" />
 
 </menu>

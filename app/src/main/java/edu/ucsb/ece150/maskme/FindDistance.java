@@ -32,7 +32,7 @@ import java.util.List;
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
  * graphic overlay view.
  */
-public class FaceGraphic extends GraphicOverlay.Graphic {
+public class FindDistance extends GraphicOverlay.Graphic {
     private static final float FACE_POSITION_RADIUS = 10.0f;
     private static final float ID_TEXT_SIZE = 40.0f;
     private static final float ID_Y_OFFSET = 50.0f;
@@ -59,7 +59,7 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
     private int mMaskIndex;
     private float mFaceHappiness;
 
-    FaceGraphic(GraphicOverlay overlay) {
+    FindDistance(GraphicOverlay overlay) {
         super(overlay);
 
         mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
@@ -99,6 +99,7 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
     /**
      * Draws the face annotations for position on the supplied canvas.
      */
+    //[TODO] change not to draw masks but tell distance from user to person
     @Override
     public void draw(Canvas canvas) {
         Face face = mFace;
