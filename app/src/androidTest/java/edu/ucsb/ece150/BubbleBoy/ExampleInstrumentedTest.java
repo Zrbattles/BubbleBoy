@@ -1,4 +1,4 @@
-package edu.ucsb.ece150.maskme;
+package edu.ucsb.ece150.BubbleBoy;
 
 import android.content.Context;
 
@@ -22,6 +22,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("edu.ucsb.ece150.maskme", appContext.getPackageName());
+        assertEquals("edu.ucsb.ece150.BubbleBoy", appContext.getPackageName());
     }
 }

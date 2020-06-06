@@ -16,29 +16,15 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"/>
 
-    <Button
-        android:id="@+id/leftButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentBottom="true"
-        android:text="Preview" />
 
     <Button
         android:id="@+id/centerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:text="Capture" />
+        android:text="Change Sound" />
 
-    <Button
-        android:id="@+id/rightButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:text="Clear" />
 
     <FrameLayout
         android:id="@+id/cameraDisplay"
@@ -52,7 +38,7 @@
         android:background="@android:color/darker_gray"
         android:layout_gravity="center">
 
-        <edu.ucsb.ece150.maskme.camera.CameraSourcePreview
+        <edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview
             android:id="@+id/preview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -62,7 +48,7 @@
             android:layout_alignParentRight="true"
             android:layout_gravity="center">
 
-            <edu.ucsb.ece150.maskme.camera.GraphicOverlay
+            <edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay
                 android:id="@+id/faceOverlay"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -72,7 +58,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_gravity="center" />
 
-        </edu.ucsb.ece150.maskme.camera.CameraSourcePreview>
+        </edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview>
 
     </FrameLayout>
 

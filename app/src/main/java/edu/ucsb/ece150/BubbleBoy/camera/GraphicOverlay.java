@@ -17,7 +17,7 @@
  * </ol>
  */
 
-package edu.ucsb.ece150.maskme.camera;
+package edu.ucsb.ece150.BubbleBoy.camera;
 
 import android.content.Context;
 import android.graphics.Canvas;

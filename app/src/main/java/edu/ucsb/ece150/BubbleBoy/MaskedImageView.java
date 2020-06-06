@@ -1,5 +1,5 @@
-package edu.ucsb.ece150.maskme;
-
+package edu.ucsb.ece150.BubbleBoy;
+// get rid of this activity
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package edu.ucsb.ece150.maskme;
+package edu.ucsb.ece150.BubbleBoy;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.Rect;
-import android.hardware.Sensor;
 
-import edu.ucsb.ece150.maskme.camera.GraphicOverlay;
+import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.Landmark;
 
@@ -40,7 +38,7 @@ public class FindDistance extends GraphicOverlay.Graphic {
     private static final float ID_X_OFFSET = -50.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
 
-    /*private static final int COLOR_CHOICES[] = {
+    private static final int COLOR_CHOICES[] = {
             Color.BLUE,
             Color.CYAN,
             Color.GREEN,
@@ -48,7 +46,7 @@ public class FindDistance extends GraphicOverlay.Graphic {
             Color.RED,
             Color.WHITE,
             Color.YELLOW
-    };*/
+    };
     private static int mCurrentColorIndex = 0;
 
     private Paint mFacePositionPaint;
@@ -62,7 +60,7 @@ public class FindDistance extends GraphicOverlay.Graphic {
 
     FindDistance(GraphicOverlay overlay) {
         super(overlay);
-        gyroscopeSensor = sensorManager.getDefaultSenor(Sensor.TYPE_GYROSCOPE);
+
         mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
         final int selectedColor = COLOR_CHOICES[mCurrentColorIndex];
 

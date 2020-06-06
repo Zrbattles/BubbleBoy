@@ -1,4 +1,4 @@
-package edu.ucsb.ece150.maskme;
+package edu.ucsb.ece150.BubbleBoy;
 
 import org.junit.Test;
 

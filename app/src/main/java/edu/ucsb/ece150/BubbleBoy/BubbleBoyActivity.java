@@ -1,4 +1,4 @@
-package edu.ucsb.ece150.maskme;
+package edu.ucsb.ece150.BubbleBoy;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -16,6 +16,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.SparseArray;
@@ -41,8 +43,8 @@ import com.google.android.material.snackbar.Snackbar;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import edu.ucsb.ece150.maskme.camera.CameraSourcePreview;
-import edu.ucsb.ece150.maskme.camera.GraphicOverlay;
+import edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview;
+import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
 
 /**
  * Activity for the BubbleBoy app.  This app detects faces with the rear facing camera, and draws
@@ -83,6 +85,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
 
     private boolean inPreview = false;
     private boolean mImageViewCaptured = false;
+    Sensor gyroscopeSensor;
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -98,105 +101,19 @@ public class BubbleBoyActivity extends AppCompatActivity {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
 
+        //gyroscopeSensor = SensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         mCenterButton = (Button) findViewById(R.id.centerButton);
         mCenterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 switch(buttonsMode) {
-                    case PREVIEW_CAPTURE:
-                        mLeftButton.setVisibility(View.VISIBLE);
-                        previewButtonVisible = true;
-                        if(mCameraSource != null) {
-                            mCameraSource.takePicture(null, new CameraSource.PictureCallback() {
-                                @Override
-                                public void onPictureTaken(byte[] data) {
-                                    mCapturedImage = BitmapFactory.decodeByteArray(data, 0, data.length);
-                                    // TODO - These lines can help with some trouble when rotating the camera. Uncomment and edit if necessary.
-                                    int orientation = getResources().getConfiguration().orientation;
-                                    if(orientation == Configuration.ORIENTATION_PORTRAIT){
-                                       mCapturedImage = rotateImage(mCapturedImage, 90.0f);
-                                    } else if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                                        mCapturedImage = rotateImage(mCapturedImage, 180f);
-                                    }
-                                    mImageView.setImageBitmap(mCapturedImage);
-                                    mImageViewCaptured = true;
-                                }
-                            });
-                        }
-                        break;
-                    case BACK_SAVE:
-                        // [TODO] remove save feature
-                        savedImage = getBitmapFromImageView(mImageView);
-                        savePrevImage();
-                        break;
-                    default:
-                        break;
+
                 }
             }
         });
 
         previewButtonVisible = false;
         maskTypeDrawn = 0;
-        mLeftButton = (Button) findViewById(R.id.leftButton);
-        mLeftButton.setVisibility(View.GONE);
-        mLeftButton.setOnClickListener(new View.OnClickListener() {
-            //[TODO] probably get rid of all of this
-            @Override
-            public void onClick(View view) {
-                switch(buttonsMode) {
-                    case PREVIEW_CAPTURE:
-                        mRightButton.setVisibility(View.VISIBLE);
-                        mPreview.addView(mImageView);
-                        mPreview.bringChildToFront(mImageView);
-                        maskTypeDrawn = 0;
-
-                        mLeftButton.setText("Back");
-                        mCenterButton.setText("Save");
-                        mRightButton.setText("Clear");
-                        buttonsMode = ButtonsMode.BACK_SAVE;
-                        mImageView.clearPath();
-                        inPreview = true;
-                        break;
-                    case BACK_SAVE:
-                        mRightButton.setVisibility(View.GONE);
-                        mPreview.removeView(mImageView);
-                        mFaces.clear();
-                        maskTypeDrawn = 0;
-
-                        mLeftButton.setText("Preview");
-                        mCenterButton.setText("Capture");
-                        buttonsMode = ButtonsMode.PREVIEW_CAPTURE;
-                        inPreview = false;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
-
-        maskTypeDrawn = 0;
-        mRightButton = (Button) findViewById(R.id.rightButton);
-        mRightButton.setVisibility(View.GONE);
-        mRightButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switch(buttonsMode) {
-                    case PREVIEW_CAPTURE:
-                        // do nothing, should not be visible
-                    case BACK_SAVE:
-                        mPreview.removeView(mImageView);
-                        mFaces.clear();
-                        mImageView.clearPath();
-                        mImageView.setImageBitmap(mCapturedImage);
-                        maskTypeDrawn = 0;
-                        mPreview.addView(mImageView);
-                        mPreview.bringChildToFront(mImageView);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
 
         mImageView = new MaskedImageView(getApplicationContext());
         mImageView.setScaleType(ImageView.ScaleType.FIT_XY);
