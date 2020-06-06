@@ -64,19 +64,11 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM = 2; // Request code for Camera Permission
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 5;
 
-    private enum ButtonsMode {
-        PREVIEW_CAPTURE, BACK_SAVE,
-    }
 
     SparseArray<Face> mFaces = new SparseArray<>();
 
-    private ButtonsMode buttonsMode = ButtonsMode.PREVIEW_CAPTURE;
     private MaskedImageView mImageView;
-    private Bitmap mCapturedImage;
-    private Button mLeftButton;
     private Button mCenterButton;
-    private Button mRightButton;
-    private Bitmap savedImage;
 
     private FaceDetector mStaticFaceDetector;
 
@@ -85,7 +77,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
 
     private boolean inPreview = false;
     private boolean mImageViewCaptured = false;
-    Sensor gyroscopeSensor;
+    private Sensor gyroscopeSensor;
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -106,9 +98,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         mCenterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                switch(buttonsMode) {
 
-                }
             }
         });
 
@@ -126,51 +116,14 @@ public class BubbleBoyActivity extends AppCompatActivity {
         } else {
             requestCameraPermission();
         }
-        //[TODO] update so that angle data can be passed
+        //[TODO] update so that selected noise is saved
         if (savedInstanceState != null) {
-            mImageViewCaptured = savedInstanceState.getBoolean("capFlag");
-            inPreview = savedInstanceState.getBoolean("prevFlag");
-            current_mask_index = savedInstanceState.getInt("mask");
-            if (mImageViewCaptured) {
-                mLeftButton.setVisibility(View.VISIBLE);
-                byte[] savedCapImageData = savedInstanceState.getByteArray("capImage");
-                mCapturedImage = BitmapFactory.decodeByteArray(savedCapImageData, 0, savedCapImageData.length);
-                mLeftButton.setVisibility(View.VISIBLE);
-                if (inPreview) {
-                    byte[] savedPrevImageData = savedInstanceState.getByteArray("prevImage");
-                    Bitmap prevImage = BitmapFactory.decodeByteArray(savedPrevImageData, 0, savedPrevImageData.length);
-                    mImageView.setImageBitmap(prevImage);
-                    mRightButton.setVisibility(View.VISIBLE);
-                    mPreview.addView(mImageView);
-                    mPreview.bringChildToFront(mImageView);
-                    maskTypeDrawn = 0;
 
-                    mLeftButton.setText("Back");
-                    mCenterButton.setText("Save");
-                    mRightButton.setText("Clear");
-                    buttonsMode = ButtonsMode.BACK_SAVE;
-                } else {
-                    mImageView.setImageBitmap(mCapturedImage);
-                    mLeftButton.setText("Preview");
-                    mCenterButton.setText("Capture");
-                    buttonsMode = ButtonsMode.PREVIEW_CAPTURE;
-                }
-            }
         }
     }
 
     /**
-     * Rotates a Bitmap by a specified angle in degrees
-     */
-    public static Bitmap rotateImage(Bitmap source, float angle){
-        Log.v("MyLogger", "Rotating bitmap " + angle + " degrees.");
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
-    }
-
-    /**
-     * Creates the menu on the Action Bar for selecting masks.
+     * Creates the menu on the Action Bar for selecting resetting gyroscope.
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -190,35 +143,12 @@ public class BubbleBoyActivity extends AppCompatActivity {
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        mImageView.setImageBitmap(mCapturedImage);
         switch(item.getItemId()) {
-            // [TODO] Using this as an example, implement behavior when a mask option is pressed.
-            case R.id.Reset:
-                // [TODO] reset the angle calculation
-                detectStaticFaces(mCapturedImage);
-                mImageView.drawFirstMask(mFaces);
-                current_mask_index = 0;
-
-                break;
-            /*case R.id.mask2:
-                detectStaticFaces(mCapturedImage);
-                mImageView.drawSecondMask(mFaces);
-                current_mask_index = 1;
-                break;*/
-            default:
-                break;
+            // [TODO] Reset GyroScope Angle Orientation
         }
         return true;
     }
 
-    private void detectStaticFaces(Bitmap image) {
-        if(image == null) return;
-
-        Frame frame = new Frame.Builder().setBitmap(image).build();
-        mFaces = mStaticFaceDetector.detect(frame);
-
-        Log.i("NumberofFaces", String.valueOf(mFaces.size()));
-    }
 
     /**
      * Handles the requesting of the camera permission.  This includes
@@ -286,23 +216,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 .build();
     }
 
-    private Bitmap getBitmapFromImageView(MaskedImageView drawnImageView) {
-        Bitmap newImage = Bitmap.createBitmap(drawnImageView.getWidth(), drawnImageView.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(newImage);
-        drawnImageView.draw(canvas);
-        return newImage;
-    }
-
-    private void savePrevImage() {
-        if (ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_STORAGE);
-        } else {
-            Long timeStampRaw = System.currentTimeMillis() / 1000;
-            String fileName = "maskImage-" + timeStampRaw.toString() + ".jpg";
-            MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), savedImage, fileName, "description stub");
-            Toast.makeText(getApplicationContext(), "Saved " + fileName + " to Gallery", Toast.LENGTH_LONG).show();
-        }
-    }
 
     /**
      * Restarts the camera.
@@ -310,7 +223,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
+        //[TODO] Update for our project
         startCameraSource();
         SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         current_mask_index = myPreferences.getInt("preferredMaskIndex", 0);
@@ -322,7 +235,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
+        //[TODO] Update onPause
         mPreview.stop();
         SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = myPreferences.edit();
@@ -365,9 +278,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
             case MY_PERMISSIONS_REQUEST_WRITE_STORAGE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Long timeStampRaw = System.currentTimeMillis() / 1000;
-                    String fileName = "maskImage-" + timeStampRaw.toString() + ".jpg";
-                    MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), savedImage, fileName, "description stub");
-                    Toast.makeText(getApplicationContext(), "Saved " + fileName + " to Gallery", Toast.LENGTH_LONG).show();
                 }
                 break;
             case RC_HANDLE_CAMERA_PERM:
@@ -392,24 +302,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putBoolean("prevFlag", inPreview);
-        savedInstanceState.putBoolean("capFlag", mImageViewCaptured);
-        savedInstanceState.putInt("mask",current_mask_index);
-        if (mImageViewCaptured) {
-            Bitmap savedCapBitmap = mCapturedImage;
-            ByteArrayOutputStream streamCap = new ByteArrayOutputStream();
-            savedCapBitmap.compress(Bitmap.CompressFormat.PNG, 100, streamCap);
-            byte[] imageCapData = streamCap.toByteArray();
-            savedInstanceState.putByteArray("capImage", imageCapData);
-            if (inPreview) {
-                mImageView.buildDrawingCache();
-                Bitmap savedPrevBitmap = getBitmapFromImageView(mImageView);
-                ByteArrayOutputStream streamPrev = new ByteArrayOutputStream();
-                savedPrevBitmap.compress(Bitmap.CompressFormat.PNG, 100, streamPrev);
-                byte[] imagePrevData = streamPrev.toByteArray();
-                savedInstanceState.putByteArray("prevImage", imagePrevData);
-            }
-        }
+
     }
 
     //==============================================================================================
@@ -462,11 +355,11 @@ public class BubbleBoyActivity extends AppCompatActivity {
      */
     private class GraphicFaceTracker extends Tracker<Face> {
         private GraphicOverlay mOverlay;
-        private FindDistance mFaceGraphic;
+        private NoiseSelect mFaceGraphic;
 
         GraphicFaceTracker(GraphicOverlay overlay) {
             mOverlay = overlay;
-            mFaceGraphic = new FindDistance(overlay);
+            mFaceGraphic = new NoiseSelect(overlay);
             mFaceGraphic.updateMask(current_mask_index);
         }
 
