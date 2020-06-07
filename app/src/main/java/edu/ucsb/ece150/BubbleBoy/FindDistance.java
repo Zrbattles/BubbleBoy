@@ -31,7 +31,7 @@ import java.util.List;
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
  * graphic overlay view.
  */
-public class NoiseSelect extends GraphicOverlay.Graphic {
+public class FindDistance extends GraphicOverlay.Graphic {
     private static final float FACE_POSITION_RADIUS = 10.0f;
     private static final float ID_TEXT_SIZE = 40.0f;
     private static final float ID_Y_OFFSET = 50.0f;
@@ -49,7 +49,7 @@ public class NoiseSelect extends GraphicOverlay.Graphic {
     private int mMaskIndex;
     private float mFaceHappiness;
 
-    NoiseSelect(GraphicOverlay overlay) {
+    FindDistance(GraphicOverlay overlay) {
         super(overlay);
 
     }

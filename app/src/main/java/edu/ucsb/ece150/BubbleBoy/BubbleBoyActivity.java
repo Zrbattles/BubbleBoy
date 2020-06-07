@@ -64,7 +64,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM = 2; // Request code for Camera Permission
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 5;
 
-
     SparseArray<Face> mFaces = new SparseArray<>();
 
     private MaskedImageView mImageView;
@@ -72,11 +71,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
 
     private FaceDetector mStaticFaceDetector;
 
-    private boolean previewButtonVisible = false;
-    private int maskTypeDrawn = 0;
-
-    private boolean inPreview = false;
-    private boolean mImageViewCaptured = false;
     private Sensor gyroscopeSensor;
 
     /**
@@ -101,9 +95,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
 
             }
         });
-
-        previewButtonVisible = false;
-        maskTypeDrawn = 0;
 
         mImageView = new MaskedImageView(getApplicationContext());
         mImageView.setScaleType(ImageView.ScaleType.FIT_XY);
@@ -355,11 +346,11 @@ public class BubbleBoyActivity extends AppCompatActivity {
      */
     private class GraphicFaceTracker extends Tracker<Face> {
         private GraphicOverlay mOverlay;
-        private NoiseSelect mFaceGraphic;
+        private FindDistance mFaceGraphic;
 
         GraphicFaceTracker(GraphicOverlay overlay) {
             mOverlay = overlay;
-            mFaceGraphic = new NoiseSelect(overlay);
+            mFaceGraphic = new FindDistance(overlay);
             mFaceGraphic.updateMask(current_mask_index);
         }
 
