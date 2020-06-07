@@ -14,6 +14,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import android.view.MenuItem;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -32,6 +34,7 @@ import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
+import java.lang.Math;
 
 import edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview;
 import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
@@ -56,7 +59,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private Button mCenterButton;
     //set up gyroscope
     private SensorManager sensMan;
-
+    private float timestamp;
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -71,7 +74,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
 
         //initialize gyroscope
         sensMan = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        Sensor gyroscopeSensor = sensMan.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        Sensor accelerometerSensor = sensMan.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
@@ -87,19 +90,33 @@ public class BubbleBoyActivity extends AppCompatActivity {
         });
 
         //set up gyroscope listener
-        SensorEventListener gyroscopeSensorListener = new SensorEventListener() {
+        SensorEventListener accelerometerSensorListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event){
             //TODO edit
                 // X axis should be the angle we are looking for axisX should return in radians
-                float axisX = event.values[0];
-                float axisY = event.values[1];
-                float axisZ = event.values[2];
+                if(timestamp != 0) {
+                    float dt = event.timestamp - timestamp;
+                    float axisX = event.values[0];
+                    float axisY = event.values[1];
+                    float axisZ = event.values[2];
+                    //Log.i("AxisY","ay: " + Float.toString(axisY));
+                    if((axisY < 8.5) || axisY > 10.5){
+                        if(axisZ > 3) {
+                            Toast.makeText(getApplicationContext(), "Tilt Camera Back", Toast.LENGTH_SHORT).show();
+                        }
+                        else{
+                            Toast.makeText(getApplicationContext(), "Tilt Camera Forward", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+                timestamp = event.timestamp;
             }
             @Override
             public void onAccuracyChanged(Sensor sensor, int i){
             }
         };
+        sensMan.registerListener(accelerometerSensorListener,accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
 
         // Check for permissions before accessing the camera. If the permission is not yet granted,
@@ -137,10 +154,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
             // [TODO] Reset GyroScope Angle Orientation
-
-        }
         return true;
     }
 
