@@ -11,16 +11,10 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -33,7 +27,6 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.CameraSource;
-import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.face.Face;
@@ -53,7 +46,6 @@ import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
 public class BubbleBoyActivity extends AppCompatActivity {
     private static final String TAG = "BubbleBoy";
 
-    static final String PREFS_NAME = "MyPrefFile";
     private int current_mask_index = 0;
 
     private CameraSource mCameraSource = null;
@@ -64,12 +56,8 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM = 2; // Request code for Camera Permission
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 5;
 
-    SparseArray<Face> mFaces = new SparseArray<>();
-
-    private MaskedImageView mImageView;
     private Button mCenterButton;
 
-    private FaceDetector mStaticFaceDetector;
 
     private Sensor gyroscopeSensor;
 
@@ -95,9 +83,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
 
             }
         });
-
-        mImageView = new MaskedImageView(getApplicationContext());
-        mImageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        
 
         // Check for permissions before accessing the camera. If the permission is not yet granted,
         // request permission from the user.
@@ -107,7 +93,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         } else {
             requestCameraPermission();
         }
-        //[TODO] update so that selected noise is saved
+        //[TODO] update so that selected saved noise is chosen
         if (savedInstanceState != null) {
 
         }
@@ -136,6 +122,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             // [TODO] Reset GyroScope Angle Orientation
+
         }
         return true;
     }
@@ -182,12 +169,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                 .setMode (FaceDetector.FAST_MODE)
                 .build();
-        // 3. Create a FaceDetector object for detecting faces on a static photo
-        mStaticFaceDetector = new FaceDetector.Builder(faceDetectorContext)
-                .setTrackingEnabled(false)
-                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
-                .setMode(FaceDetector.FAST_MODE)
-                .build();
         // 4. Create a GraphicFaceTrackerFactory
         GraphicFaceTrackerFactory detectorFactory = new GraphicFaceTrackerFactory();
         // 5. Pass the GraphicFaceTrackerFactory to
@@ -216,8 +197,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         super.onResume();
         //[TODO] Update for our project
         startCameraSource();
-        SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        current_mask_index = myPreferences.getInt("preferredMaskIndex", 0);
+
     }
 
     /**
@@ -228,10 +208,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
         super.onPause();
         //[TODO] Update onPause
         mPreview.stop();
-        SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = myPreferences.edit();
-        editor.putInt("preferredMaskIndex", current_mask_index);
-        editor.apply();
     }
 
     /**
