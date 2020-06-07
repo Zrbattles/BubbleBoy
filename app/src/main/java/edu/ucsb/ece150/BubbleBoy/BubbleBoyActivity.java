@@ -9,9 +9,12 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -57,9 +60,9 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 5;
 
     private Button mCenterButton;
+    //set up gyroscope
+    private SensorManager sensMan;
 
-
-    private Sensor gyroscopeSensor;
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -68,22 +71,39 @@ public class BubbleBoyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_face_tracker);
-
         Toolbar myToolbar = (Toolbar) findViewById(R.id.appToolbar);
         setSupportActionBar(myToolbar);
+        //initialize gyroscope
+        sensMan = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        Sensor gyroscopeSensor = sensMan.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
 
-        //gyroscopeSensor = SensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
         mCenterButton = (Button) findViewById(R.id.centerButton);
         mCenterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+            Intent intent = new Intent(BubbleBoyActivity.this, SoundSelectionActivity.class);
+            startActivityForResult(intent,1);
             }
         });
-        
+        //set up gyroscope listener
+        SensorEventListener gyroscopeSensorListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event){
+            //TODO edit
+                // X axis should be the angle we are looking for axisX should return in radians
+                float axisX = event.values[0];
+                float axisY = event.values[1];
+                float axisZ = event.values[2];
+            }
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i){
+            }
+        };
+
 
         // Check for permissions before accessing the camera. If the permission is not yet granted,
         // request permission from the user.
