@@ -3,20 +3,17 @@ package edu.ucsb.ece150.BubbleBoy;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,8 +21,6 @@ import android.view.MenuItem;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -36,7 +31,6 @@ import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview;
@@ -70,9 +64,11 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_face_tracker);
+        setContentView(R.layout.activity_bubble_boy);
+
         Toolbar myToolbar = (Toolbar) findViewById(R.id.appToolbar);
         setSupportActionBar(myToolbar);
+
         //initialize gyroscope
         sensMan = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor gyroscopeSensor = sensMan.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -89,6 +85,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
             startActivityForResult(intent,1);
             }
         });
+
         //set up gyroscope listener
         SensorEventListener gyroscopeSensorListener = new SensorEventListener() {
             @Override
@@ -180,7 +177,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
      * at long distances.
      */
     private void createCameraSource() {
-        // [TODO] Create a face detector for real time face detection
         // 1. Get the application's context
         Context faceDetectorContext = getApplicationContext();
         // 2. Create a FaceDetector object for real time detection
