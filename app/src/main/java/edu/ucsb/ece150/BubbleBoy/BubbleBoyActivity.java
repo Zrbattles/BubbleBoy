@@ -161,6 +161,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                     } else {
                         mMuteButton.setBackgroundColor(Color.BLACK);
                     }
+                    Toast.makeText(getApplicationContext(), "Alert Sounds Enabled!", Toast.LENGTH_SHORT).show();
                 } else {
                     mMuteFlag = true;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -168,6 +169,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                     } else {
                         mMuteButton.setBackgroundColor(Color.RED);
                     }
+                    Toast.makeText(getApplicationContext(), "Alert Sounds Muted!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -354,6 +356,20 @@ public class BubbleBoyActivity extends AppCompatActivity {
                                 mHapticsDuration = 125;
                                 mMaxSoundDuration = 1000;
                                 mMuteFlag = false;
+                                if (mMuteFlag) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                        mMuteButton.setForeground(getApplicationContext().getDrawable(R.drawable.sound_off_foreground));
+                                    } else {
+                                        mMuteButton.setBackgroundColor(Color.RED);
+                                    }
+                                } else {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                        mMuteButton.setForeground(getApplicationContext().getDrawable(R.drawable.sound_on_foreground));
+                                    }
+                                    else {
+                                        mMuteButton.setBackgroundColor(Color.BLACK);
+                                    }
+                                }
                                 Toast.makeText(getApplicationContext(), "Settings reset to Default!", Toast.LENGTH_SHORT).show();
                             }
                         })
