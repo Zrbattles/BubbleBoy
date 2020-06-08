@@ -14,7 +14,23 @@
         android:elevation="4dp"
         android:background="@android:color/background_dark"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"/>
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Dark">
+
+        <Button
+            android:id="@+id/muteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="right|top"
+            android:background="@color/common_google_signin_btn_text_dark_focused"
+            android:foreground="@drawable/sound_on_foreground"
+            android:minWidth="48dip"
+            android:textColor="#FFFFFF"
+            android:translationX="-15dp" />
+
+    </androidx.appcompat.widget.Toolbar>
 
 
     <Button

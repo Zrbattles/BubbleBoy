@@ -1,5 +1,6 @@
 package edu.ucsb.ece150.BubbleBoy;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -13,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -43,10 +45,6 @@ import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
-import java.lang.Math;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
 
 import edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview;
 import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
@@ -83,6 +81,8 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private int mMaxSoundDuration = 1000;
     private String[] mAlertSounds = {"Notification Sounds", "Alarm Sounds", "Ringtone Sounds"};
     private String[] mSoundSettings = {"5 Seconds", "3 Seconds", "1 Second"};
+    private Boolean mMuteFlag = false;
+    private Button mMuteButton;
 
     // set up private variables for haptics
     private Vibrator mVibe;
@@ -93,6 +93,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     /**
      * Initializes the UI and initiates the creation of a face detector.
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,14 +109,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
 
-        mCenterButton = (Button) findViewById(R.id.centerButton);
-        mCenterButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                playAlertSound();
-            }
-        });
-
         // pull saved data either from a bundle if rotated or shared prefs
         if (savedInstanceState == null) {
             SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -126,12 +119,58 @@ public class BubbleBoyActivity extends AppCompatActivity {
             mMaxSoundDuration = myPreferences.getInt("max_sound_duration", 1000);
             mHapticsFlag = myPreferences.getBoolean("haptics_flag", true);
             mHapticsDuration = myPreferences.getInt("haptics_duration", 100);
+            mMuteFlag = myPreferences.getBoolean("mute_flag", false);
         } else {
             mAlertSound = Uri.parse(savedInstanceState.getString("alert_sound"));
             mMaxSoundDuration = savedInstanceState.getInt("max_sound_duration");
             mHapticsFlag = savedInstanceState.getBoolean("haptics_flag");
             mHapticsDuration = savedInstanceState.getInt("haptics_duration");
+            mMuteFlag = savedInstanceState.getBoolean("mute_flag");
         }
+
+        mCenterButton = (Button) findViewById(R.id.centerButton);
+        mCenterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playAlertSound();
+            }
+        });
+
+        mMuteButton = findViewById(R.id.muteButton);
+        if (mMuteFlag) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mMuteButton.setForeground(this.getDrawable(R.drawable.sound_off_foreground));
+            } else {
+                mMuteButton.setBackgroundColor(Color.RED);
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mMuteButton.setForeground(this.getDrawable(R.drawable.sound_on_foreground));
+            }
+            else {
+                mMuteButton.setBackgroundColor(Color.BLACK);
+            }
+        }
+        mMuteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mMuteFlag) {
+                    mMuteFlag = false;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        mMuteButton.setForeground(getApplicationContext().getDrawable(R.drawable.sound_on_foreground));
+                    } else {
+                        mMuteButton.setBackgroundColor(Color.BLACK);
+                    }
+                } else {
+                    mMuteFlag = true;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        mMuteButton.setForeground(getApplicationContext().getDrawable(R.drawable.sound_off_foreground));
+                    } else {
+                        mMuteButton.setBackgroundColor(Color.RED);
+                    }
+                }
+            }
+        });
 
         //set up gyroscope listener
         SensorEventListener accelerometerSensorListener = new SensorEventListener() {
@@ -314,6 +353,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                                 mHapticsFlag = true;
                                 mHapticsDuration = 125;
                                 mMaxSoundDuration = 1000;
+                                mMuteFlag = false;
                                 Toast.makeText(getApplicationContext(), "Settings reset to Default!", Toast.LENGTH_SHORT).show();
                             }
                         })
@@ -450,8 +490,10 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 initAlertSoundPlayer();
             }
 
-            mPlayer.start();
-            mTimer.start();
+            if (!mMuteFlag) {
+                mPlayer.start();
+                mTimer.start();
+            }
             if (mHapticsFlag) {
                 mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -492,6 +534,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         editor.putInt("max_sound_duration", mMaxSoundDuration);
         editor.putBoolean("haptics_flag", mHapticsFlag);
         editor.putInt("haptics_duration", mHapticsDuration);
+        editor.putBoolean("mute_flag", mMuteFlag);
         editor.apply();
         mPreview.stop();
     }
@@ -564,6 +607,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         savedInstanceState.putInt("max_sound_duration", mMaxSoundDuration);
         savedInstanceState.putBoolean("haptics_flag", mHapticsFlag);
         savedInstanceState.putInt("haptics_duration", mHapticsDuration);
+        savedInstanceState.putBoolean("mute_flag", mMuteFlag);
     }
 
     @Override
