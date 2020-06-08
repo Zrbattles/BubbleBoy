@@ -14,6 +14,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.view.Menu;
@@ -61,6 +64,12 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private SensorManager sensMan;
     private float timestamp;
 
+    // set up private variables for sound
+    private Boolean mUsingDefaultRingtones = true;
+    private int mCustomSoundIndex = 0;
+    private MediaPlayer mPlayer = null;
+    private Uri mAlertSound = null;
+
     /**
      * Initializes the UI and initiates the creation of a face detector.
      */
@@ -79,13 +88,11 @@ public class BubbleBoyActivity extends AppCompatActivity {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
 
-
         mCenterButton = (Button) findViewById(R.id.centerButton);
         mCenterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            Intent intent = new Intent(BubbleBoyActivity.this, SoundSelectionActivity.class);
-            startActivityForResult(intent,1);
+                playAlertSound();
             }
         });
 
@@ -218,6 +225,54 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 .build();
     }
 
+    // sets the alert sound to either the default ringtone or user choice
+    private void setAlertSound() {
+        if (mUsingDefaultRingtones) {
+            mAlertSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            if (RingtoneManager.getRingtone(this, mAlertSound)== null) {
+                mAlertSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+                if (RingtoneManager.getRingtone(this, mAlertSound) == null) {
+                    mAlertSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+                }
+            }
+        } else {
+            // TO DO: add selection system based on selected custom sound (switch case?)
+        }
+    }
+
+    // creates the alert sound and sets behavior for on completion
+    private void initAlertSoundPlayer() {
+        // check if we have to first set the alert sound
+        if (mAlertSound == null) {
+            setAlertSound();
+        }
+        mPlayer = MediaPlayer.create(this, mAlertSound);
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                mPlayer.reset();
+                mPlayer.release();
+                mPlayer = null;
+            }
+        });
+    }
+
+    // plays alert sound and handles if an alert is already playing
+    private void playAlertSound() {
+        if (mPlayer == null) {
+            initAlertSoundPlayer();
+        }
+        try {
+            if (mPlayer.isPlaying()) {
+                mPlayer.stop();
+                mPlayer.release();
+                initAlertSoundPlayer();
+            }
+            mPlayer.start();
+        } catch(Exception error) {
+            error.printStackTrace();
+        }
+    }
 
     /**
      * Restarts the camera.
