@@ -6,9 +6,12 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -18,6 +21,9 @@ import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CountDownTimer;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,6 +44,9 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 import java.lang.Math;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 
 import edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview;
 import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
@@ -48,6 +57,7 @@ import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
  */
 public class BubbleBoyActivity extends AppCompatActivity {
     private static final String TAG = "BubbleBoy";
+    static final String PREFS_NAME = "BubbleBoySaves";
 
     private int current_mask_index = 0;
 
@@ -60,15 +70,25 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 5;
 
     private Button mCenterButton;
-    //set up gyroscope
+
+    //set up accelerometer
     private SensorManager sensMan;
     private float timestamp;
 
     // set up private variables for sound
-    private Boolean mUsingDefaultRingtones = true;
-    private int mCustomSoundIndex = 0;
+    private static final int RINGTONE_PICK_REQUEST_CODE = 11;
     private MediaPlayer mPlayer = null;
     private Uri mAlertSound = null;
+    private CountDownTimer mTimer = null;
+    private int mMaxSoundDuration = 1000;
+    private String[] mAlertSounds = {"Notification Sounds", "Alarm Sounds", "Ringtone Sounds"};
+    private String[] mSoundSettings = {"5 Seconds", "3 Seconds", "1 Second"};
+
+    // set up private variables for haptics
+    private Vibrator mVibe;
+    private Boolean mHapticsFlag = true;
+    private int mHapticsDuration = 100;
+    private String[] mHapticSettings = {"Long", "Medium", "Short", "Disable Haptics"};
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -96,6 +116,23 @@ public class BubbleBoyActivity extends AppCompatActivity {
             }
         });
 
+        // pull saved data either from a bundle if rotated or shared prefs
+        if (savedInstanceState == null) {
+            SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            mAlertSound = Uri.parse(myPreferences.getString("alert_sound", "default"));
+            if (mAlertSound.toString() == "default") {
+                mAlertSound = null;
+            }
+            mMaxSoundDuration = myPreferences.getInt("max_sound_duration", 1000);
+            mHapticsFlag = myPreferences.getBoolean("haptics_flag", true);
+            mHapticsDuration = myPreferences.getInt("haptics_duration", 100);
+        } else {
+            mAlertSound = Uri.parse(savedInstanceState.getString("alert_sound"));
+            mMaxSoundDuration = savedInstanceState.getInt("max_sound_duration");
+            mHapticsFlag = savedInstanceState.getBoolean("haptics_flag");
+            mHapticsDuration = savedInstanceState.getInt("haptics_duration");
+        }
+
         //set up gyroscope listener
         SensorEventListener accelerometerSensorListener = new SensorEventListener() {
             @Override
@@ -110,10 +147,12 @@ public class BubbleBoyActivity extends AppCompatActivity {
                     //Log.i("AxisY","ay: " + Float.toString(axisY));
                     if((axisY < 8.5) || axisY > 10.5){
                         if(axisZ > 3) {
-                            Toast.makeText(getApplicationContext(), "Tilt Camera Back", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getApplicationContext(), "Tilt Camera Back", Toast.LENGTH_SHORT).show();
+                            // TODO: FIX THESE BROKEN TOASTS!!!! (they persist outside the app)
                         }
                         else{
-                            Toast.makeText(getApplicationContext(), "Tilt Camera Forward", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getApplicationContext(), "Tilt Camera Forward", Toast.LENGTH_SHORT).show();
+                            // TODO: FIX THESE BROKEN TOASTS!!!! (they persist outside the app)
                         }
                     }
                 }
@@ -161,7 +200,135 @@ public class BubbleBoyActivity extends AppCompatActivity {
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-            // [TODO] Reset GyroScope Angle Orientation
+        switch(item.getItemId()) {
+            case R.id.changeSound:
+                final Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
+                intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Select Alert Sound");
+                if (mAlertSound != null) {
+                    intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, mAlertSound);
+                } else {
+                    setDefAlertSound();
+                    intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, mAlertSound);
+                }
+                intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false);
+                intent.putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Alert Sound Libraries")
+                        .setItems(mAlertSounds, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                switch (i) {
+                                    case 0:
+                                        intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
+                                        break;
+                                    case 1:
+                                        intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM);
+                                        break;
+                                    case 2:
+                                        intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_RINGTONE);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                startActivityForResult(intent, RINGTONE_PICK_REQUEST_CODE);
+                            }
+                        });
+                // Create the AlertDialog object and return it
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+                break;
+
+            case R.id.soundSettings:
+                AlertDialog.Builder builder0 = new AlertDialog.Builder(this);
+                builder0.setTitle("Alert Sound Max Duration")
+                        .setItems(mSoundSettings, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                switch (i) {
+                                    case 0:
+                                        mMaxSoundDuration = 5000;
+                                        Toast.makeText(getApplicationContext(), "Alert Sound Max Duration set to 5 Seconds.", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 1:
+                                        mMaxSoundDuration = 3000;
+                                        Toast.makeText(getApplicationContext(), "Alert Sound Max Duration set to 3 Seconds.", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 2:
+                                        mMaxSoundDuration = 1000;
+                                        Toast.makeText(getApplicationContext(), "Alert Sound Max Duration set to 1 Second.", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        });
+                // Create the AlertDialog object and return it
+                AlertDialog alertDialog0 = builder0.create();
+                alertDialog0.show();
+                break;
+            case R.id.hapticSettings:
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+                builder1.setTitle("Haptic Feedback Duration Settings")
+                        .setItems(mHapticSettings, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                switch (i) {
+                                    case 0:
+                                        mHapticsFlag = true;
+                                        mHapticsDuration = 150;
+                                        Toast.makeText(getApplicationContext(), "Haptics set to long.", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 1:
+                                        mHapticsFlag = true;
+                                        mHapticsDuration = 100;
+                                        Toast.makeText(getApplicationContext(), "Haptics set to medium.", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 2:
+                                        mHapticsFlag = true;
+                                        mHapticsDuration = 50;
+                                        Toast.makeText(getApplicationContext(), "Haptics set to short.", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 3:
+                                        mHapticsFlag = false;
+                                        Toast.makeText(getApplicationContext(), "Haptics disabled.", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    default:
+                                        mHapticsFlag = true;
+                                        break;
+                                }
+                            }
+                        });
+                // Create the AlertDialog object and return it
+                AlertDialog alertDialog1 = builder1.create();
+                alertDialog1.show();
+                break;
+            case R.id.setDefaults:
+                AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
+                builder2.setMessage("Reset all BubbleBoy settings to default values?")
+                        .setTitle("Set Default Settings")
+                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                mPlayer = null;
+                                mAlertSound = null;
+                                initAlertSoundPlayer();
+                                mHapticsFlag = true;
+                                mHapticsDuration = 125;
+                                mMaxSoundDuration = 1000;
+                                Toast.makeText(getApplicationContext(), "Settings reset to Default!", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Toast.makeText(getApplicationContext(), "Settings unchanged.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                // Create the AlertDialog object and return it
+                AlertDialog alertDialog2 = builder2.create();
+                alertDialog2.show();
+                break;
+            default:
+                return false;
+        }
         return true;
     }
 
@@ -203,7 +370,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         // 2. Create a FaceDetector object for real time detection
         //    Ref: https://developers.google.com/vision/android/face-tracker-tutorial
         FaceDetector realTimeDetector = new FaceDetector.Builder(faceDetectorContext)
-                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+               // .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                 .setMode (FaceDetector.FAST_MODE)
                 .build();
         // 4. Create a GraphicFaceTrackerFactory
@@ -214,20 +381,19 @@ public class BubbleBoyActivity extends AppCompatActivity {
         // 6. Associate the MultiProcessor with the real time detector
         realTimeDetector.setProcessor(pipeline);
         // 7. Check if the real time detector is operational
-        //
         // 8. Create a camera source to capture video images from the camera,
         //    and continuously stream those images into the detector and
         //    its associated MultiProcessor
         mCameraSource = new CameraSource.Builder(faceDetectorContext, realTimeDetector)
-                .setRequestedPreviewSize(1280,720)
+                .setRequestedPreviewSize(960,720)
                 .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedFps(30.0f)
                 .build();
     }
 
     // sets the alert sound to either the default ringtone or user choice
-    private void setAlertSound() {
-        if (mUsingDefaultRingtones) {
+    private void setDefAlertSound() {
+        if (mAlertSound == null) {
             mAlertSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             if (RingtoneManager.getRingtone(this, mAlertSound)== null) {
                 mAlertSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
@@ -235,8 +401,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
                     mAlertSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
                 }
             }
-        } else {
-            // TO DO: add selection system based on selected custom sound (switch case?)
         }
     }
 
@@ -244,7 +408,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private void initAlertSoundPlayer() {
         // check if we have to first set the alert sound
         if (mAlertSound == null) {
-            setAlertSound();
+            setDefAlertSound();
         }
         mPlayer = MediaPlayer.create(this, mAlertSound);
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -253,8 +417,24 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 mPlayer.reset();
                 mPlayer.release();
                 mPlayer = null;
+                mTimer.cancel();
             }
         });
+        mTimer = new CountDownTimer(mMaxSoundDuration, mMaxSoundDuration) {
+            @Override
+            public void onTick(long l) {
+            }
+            @Override
+            public void onFinish() {
+                if (mPlayer != null) {
+                    if (mPlayer.isPlaying()) {
+                        mPlayer.stop();
+                        mPlayer.release();
+                        mPlayer = null;
+                    }
+                }
+            }
+        };
     }
 
     // plays alert sound and handles if an alert is already playing
@@ -266,9 +446,20 @@ public class BubbleBoyActivity extends AppCompatActivity {
             if (mPlayer.isPlaying()) {
                 mPlayer.stop();
                 mPlayer.release();
+                mTimer.cancel();
                 initAlertSoundPlayer();
             }
+
             mPlayer.start();
+            mTimer.start();
+            if (mHapticsFlag) {
+                mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    mVibe.vibrate(VibrationEffect.createOneShot(mHapticsDuration, VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    mVibe.vibrate(mHapticsDuration);
+                }
+            }
         } catch(Exception error) {
             error.printStackTrace();
         }
@@ -280,7 +471,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //[TODO] Update for our project
         startCameraSource();
 
     }
@@ -291,7 +481,18 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        //[TODO] Update onPause
+        SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPreferences.edit();
+        if (mAlertSound != null) {
+            editor.putString("alert_sound", mAlertSound.toString());
+        } else {
+            setDefAlertSound();
+            editor.putString("alert_sound", mAlertSound.toString());
+        }
+        editor.putInt("max_sound_duration", mMaxSoundDuration);
+        editor.putBoolean("haptics_flag", mHapticsFlag);
+        editor.putInt("haptics_duration", mHapticsDuration);
+        editor.apply();
         mPreview.stop();
     }
 
@@ -350,11 +551,27 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 return;
         }
     }
-    //[TODO] update onSaveInstanceState probably need to fix angle readings
+
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        if (mAlertSound != null) {
+            savedInstanceState.putString("alert_sound", mAlertSound.toString());
+        } else {
+            setDefAlertSound();
+            savedInstanceState.putString("alert_sound", mAlertSound.toString());
+        }
+        savedInstanceState.putInt("max_sound_duration", mMaxSoundDuration);
+        savedInstanceState.putBoolean("haptics_flag", mHapticsFlag);
+        savedInstanceState.putInt("haptics_duration", mHapticsDuration);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RINGTONE_PICK_REQUEST_CODE) {
+            mAlertSound = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+        }
     }
 
     //==============================================================================================

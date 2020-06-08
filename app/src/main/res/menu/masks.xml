@@ -5,8 +5,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/Reset"
-        android:title="@string/reset"
+        android:id="@+id/changeSound"
+        android:title="Change Alert Sound"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/soundSettings"
+        android:title="Sound Settings" />
+    <item
+        android:id="@+id/hapticSettings"
+        android:title="Haptic Settings" />
+    <item
+        android:id="@+id/setDefaults"
+        android:title="Set Defaults" />
 
 </menu>
