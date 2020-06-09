@@ -216,8 +216,8 @@ public class BubbleBoyActivity extends AppCompatActivity {
                     float axisZ = event.values[2];
                     //Log.i("AxisY","ay: " + Float.toString(axisY));
                     if(orientation == Configuration.ORIENTATION_PORTRAIT) {
-                        if ((axisY < 8.5) || axisY > 10.5) {
-                            if (axisZ > 3) {
+                        if ((axisY < 9.5) || axisY > 10.5) {
+                            if (axisZ > 2) {
                                 mTiltUp = true;
                             } else {
                                 mTiltDown = true;
