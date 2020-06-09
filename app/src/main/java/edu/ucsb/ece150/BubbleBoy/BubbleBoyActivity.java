@@ -521,6 +521,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
+                mTimer.cancel();
                 mPlayer.stop();
                 try {
                     mPlayer.prepare();
@@ -530,7 +531,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
                     mPlayer.release();
                     mPlayer = null;
                 }
-                mTimer.cancel();
             }
         });
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -555,8 +555,8 @@ public class BubbleBoyActivity extends AppCompatActivity {
         try {
             if (mPlayer.isPlaying()) {
                 mPlayer.stop();
-                mPlayer.prepare();
                 mTimer.cancel();
+                mPlayer.prepare();
             }
 
             if (!mMuteFlag && mSoundPrepared) {
