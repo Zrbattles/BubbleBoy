@@ -41,6 +41,14 @@
         android:layout_centerHorizontal="true"
         android:text="Test Sound" />
 
+    <Button
+        android:id="@+id/rightButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/appToolbar"
+        android:layout_alignParentBottom="true"
+        android:text="Tilt" />
+
 
     <FrameLayout
         android:id="@+id/cameraDisplay"

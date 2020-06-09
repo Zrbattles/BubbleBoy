@@ -14,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.hardware.Sensor;
@@ -71,7 +72,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 5;
 
     private Button mCenterButton;
-
+    private Button mRightButton;
     //set up accelerometer
     private SensorManager sensMan;
     private float timestamp;
@@ -91,7 +92,10 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private Boolean mTooCloseAlert = true;
     private Boolean mSoundPrepared = false;
     private Boolean mPlayLaterFlag = false;
-    private int mTimer2Duration = 1000;
+    private int mTimer2Duration = 2000;
+    private Boolean mTiltUp = false;
+    private Boolean mTiltDown = false;
+    private Boolean mTiltOption = true;
 
     // set up private variables for haptics
     private Vibrator mVibe;
@@ -145,6 +149,21 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 playAlertSound();
             }
         });
+        mRightButton = (Button) findViewById(R.id.rightButton);
+        mRightButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mTiltOption == true) {
+                    mTiltOption = false;
+                    mGraphicOverlay.clear();
+                }
+                else{
+                    mTiltOption = true;
+                }
+                GraphicOverlay.updateTiltOption(mTiltOption);
+
+            }
+        });
 
         mMuteButton = findViewById(R.id.muteButton);
         if (mMuteFlag) {
@@ -188,7 +207,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         SensorEventListener accelerometerSensorListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event){
-            //TODO edit
+                int orientation = getResources().getConfiguration().orientation;
                 // X axis should be the angle we are looking for axisX should return in radians
                 if(timestamp != 0) {
                     float dt = event.timestamp - timestamp;
@@ -196,16 +215,33 @@ public class BubbleBoyActivity extends AppCompatActivity {
                     float axisY = event.values[1];
                     float axisZ = event.values[2];
                     //Log.i("AxisY","ay: " + Float.toString(axisY));
-                    if((axisY < 8.5) || axisY > 10.5){
-                        if(axisZ > 3) {
-                            //Toast.makeText(getApplicationContext(), "Tilt Camera Back", Toast.LENGTH_SHORT).show();
-                            // TODO: FIX THESE BROKEN TOASTS!!!! (they persist outside the app)
-                        }
-                        else{
-                            //Toast.makeText(getApplicationContext(), "Tilt Camera Forward", Toast.LENGTH_SHORT).show();
-                            // TODO: FIX THESE BROKEN TOASTS!!!! (they persist outside the app)
+                    if(orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        if ((axisY < 8.5) || axisY > 10.5) {
+                            if (axisZ > 3) {
+                                mTiltUp = true;
+                            } else {
+                                mTiltDown = true;
+                            }
+                        } else {
+                            mTiltUp = false;
+                            mTiltDown = false;
                         }
                     }
+                    else{
+                        if((axisX < 9.5) || (axisX > 10.5)){
+                            if (axisZ > 0) {
+                                mTiltUp = true;
+                            } else {
+                                mTiltDown = true;
+                            }
+                        }
+                        else{
+                            mTiltUp = false;
+                            mTiltDown = false;
+                        }
+                    }
+                    GraphicOverlay.updateTilt(mTiltUp,mTiltDown);
+
                 }
                 timestamp = event.timestamp;
             }

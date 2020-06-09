@@ -72,7 +72,7 @@ public class FindDistance extends GraphicOverlay.Graphic {
         mFacePositionPaint.setColor(selectedColor);
 
         mIdPaint = new Paint();
-        mIdPaint.setColor(selectedColor);
+        mIdPaint.setColor(Color.BLUE);
         mIdPaint.setTextSize(ID_TEXT_SIZE);
 
         mBoxPaint = new Paint();
@@ -142,7 +142,7 @@ public class FindDistance extends GraphicOverlay.Graphic {
                 // [TODO] Draw real time masks for a single face
                 //canvas.drawCircle(x,y, FACE_POSITION_RADIUS, mFacePositionPaint);
                 canvas.drawRect(left, top, right, bottom, mBoxPaint);
-                //canvas.drawText("id: " + Integer.toString(mFaceId), id_x, id_y, mIdPaint);
+
                 //canvas.drawText("happiness: "+ Float.toString(mFaceHappiness), hap_x, hap_y, mIdPaint);
                 break;
             /*default:

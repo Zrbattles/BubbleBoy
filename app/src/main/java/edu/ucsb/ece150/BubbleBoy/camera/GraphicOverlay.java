@@ -20,8 +20,12 @@
 package edu.ucsb.ece150.BubbleBoy.camera;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.view.OrientationEventListener;
 import android.view.View;
 
 import com.google.android.gms.vision.CameraSource;
@@ -53,10 +57,18 @@ public class GraphicOverlay extends View {
     private int mPreviewHeight;
     private float mWidthScaleFactor = 1.0f;
     private float mHeightScaleFactor = 1.0f;
+    private static boolean mTiltUp = false;
+    private static boolean mTiltDown = false;
+    private static boolean mTiltOption = true;
 
     private int mFacing = CameraSource.CAMERA_FACING_BACK;
     private HashSet<Graphic> mGraphics = new HashSet<>();
 
+    public static void updateTilt(boolean tiltup, boolean tiltdown){
+        mTiltUp = tiltup;
+        mTiltDown = tiltdown;
+    }
+    public static void updateTiltOption(boolean tiltOption){ mTiltOption = tiltOption;}
     /**
      * Base class for a custom graphics object to be rendered within the graphic overlay.  Subclass
      * this and implement the {@link Graphic#draw(Canvas)} method to define the
@@ -135,6 +147,7 @@ public class GraphicOverlay extends View {
         postInvalidate();
     }
 
+
     /**
      * Adds a graphic to the overlay.
      */
@@ -174,7 +187,22 @@ public class GraphicOverlay extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
+        final float ID_TEXT_SIZE = 30.0f;
+        Paint mIdPaint;
+        mIdPaint = new Paint();
+        mIdPaint.setColor(Color.WHITE);
+        mIdPaint.setTextSize(ID_TEXT_SIZE);
+        if(mTiltUp == true && mTiltOption == true) {
+            canvas.drawText("Tilt Camera Up", 140, 150, mIdPaint);
+        }
+        if(mTiltDown == true && mTiltOption == true){
+            if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                canvas.drawText("Tilt Camera Down", 140, 600, mIdPaint);
+            }
+            else{
+                canvas.drawText("Tilt Camera Down", 140, 300, mIdPaint);
+            }
+        }
         synchronized (mLock) {
             if ((mPreviewWidth != 0) && (mPreviewHeight != 0)) {
                 mWidthScaleFactor = (float) canvas.getWidth() / (float) mPreviewWidth;
