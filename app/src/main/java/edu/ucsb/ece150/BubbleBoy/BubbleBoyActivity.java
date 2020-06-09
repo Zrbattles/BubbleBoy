@@ -81,12 +81,14 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private MediaPlayer mPlayer = null;
     private Uri mAlertSound = null;
     private CountDownTimer mTimer = null;
+    private CountDownTimer mTimer2 = null;
     private int mMaxSoundDuration = 1000;
     private String[] mAlertSounds = {"Notification Sounds", "Alarm Sounds", "Ringtone Sounds"};
     private String[] mSoundSettings = {"5 Seconds", "3 Seconds", "1 Second"};
     private Boolean mMuteFlag = false;
     private Button mMuteButton;
     private Boolean mTooClose = false;
+    private Boolean mTooCloseAlert = true;
 
     // set up private variables for haptics
     private Vibrator mVibe;
@@ -208,7 +210,16 @@ public class BubbleBoyActivity extends AppCompatActivity {
             }
         };
         sensMan.registerListener(accelerometerSensorListener,accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        mTimer2 = new CountDownTimer(mMaxSoundDuration, mMaxSoundDuration) {
+            @Override
+            public void onTick(long l) {
+            }
 
+            @Override
+            public void onFinish() {
+                mTooCloseAlert = true;
+            }
+        };
 
         // Check for permissions before accessing the camera. If the permission is not yet granted,
         // request permission from the user.
@@ -470,16 +481,6 @@ public class BubbleBoyActivity extends AppCompatActivity {
         if (mAlertSound == null) {
             setDefAlertSound();
         }
-        mPlayer = MediaPlayer.create(this, mAlertSound);
-        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                mPlayer.reset();
-                mPlayer.release();
-                mPlayer = null;
-                mTimer.cancel();
-            }
-        });
         mTimer = new CountDownTimer(mMaxSoundDuration, mMaxSoundDuration) {
             @Override
             public void onTick(long l) {
@@ -495,10 +496,21 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 }
             }
         };
+        mPlayer = MediaPlayer.create(this, mAlertSound);
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                mPlayer.reset();
+                mPlayer.release();
+                mPlayer = null;
+                mTimer.cancel();
+            }
+        });
+
     }
 
     // plays alert sound and handles if an alert is already playing
-    private void playAlertSound() {
+    public void playAlertSound() {
         if (mPlayer == null) {
             initAlertSoundPlayer();
         }
@@ -694,6 +706,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
             mOverlay = overlay;
             mFaceGraphic = new FindDistance(overlay);
             mFaceGraphic.updateMask(current_mask_index);
+
         }
 
         /**
@@ -715,7 +728,9 @@ public class BubbleBoyActivity extends AppCompatActivity {
             Landmark nose = landmarks.get(2);
             Landmark mouth = landmarks.get(3);
             mTooClose = tooClose(nose,mouth);
-            if(mTooClose == true){
+            if(mTooClose == true && mTooCloseAlert == true){
+                mTooCloseAlert = false;
+                mTimer2.start();
                 playAlertSound();
             }
             mFaceGraphic.updateTooClose(mTooClose);
@@ -751,6 +766,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 return false;
             else
                 return true;
+
         }
     }
 
