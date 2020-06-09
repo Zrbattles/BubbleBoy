@@ -195,8 +195,12 @@ public class GraphicOverlay extends View {
         int xPos = (9*canvas.getWidth()/32);
         int yPos = (canvas.getHeight()/4);
         if(mTiltUp == true && mTiltOption == true) {
-
-            canvas.drawText("Tilt Camera Up", xPos, 3*yPos/4, mIdPaint);
+            if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+                canvas.drawText("Tilt Camera Up", xPos, 3 * yPos / 4, mIdPaint);
+            }
+            else{
+                canvas.drawText("Tilt Camera Up", xPos, 4 * yPos / 4, mIdPaint);
+            }
 
         }
         if(mTiltDown == true && mTiltOption == true){
