@@ -146,7 +146,7 @@ public class GraphicOverlay extends View {
         }
         postInvalidate();
     }
-    
+
 
     /**
      * Adds a graphic to the overlay.
@@ -192,15 +192,19 @@ public class GraphicOverlay extends View {
         mIdPaint = new Paint();
         mIdPaint.setColor(Color.WHITE);
         mIdPaint.setTextSize(ID_TEXT_SIZE);
+        int xPos = (9*canvas.getWidth()/32);
+        int yPos = (canvas.getHeight()/4);
         if(mTiltUp == true && mTiltOption == true) {
-            canvas.drawText("Tilt Camera Up", 140, 150, mIdPaint);
+
+            canvas.drawText("Tilt Camera Up", xPos, 3*yPos/4, mIdPaint);
+
         }
         if(mTiltDown == true && mTiltOption == true){
             if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-                canvas.drawText("Tilt Camera Down", 140, 600, mIdPaint);
+                canvas.drawText("Tilt Camera Down", xPos, 15*yPos/4, mIdPaint);
             }
             else{
-                canvas.drawText("Tilt Camera Down", 140, 300, mIdPaint);
+                canvas.drawText("Tilt Camera Down", xPos, 15*yPos/4, mIdPaint);
             }
         }
         synchronized (mLock) {
