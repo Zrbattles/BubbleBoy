@@ -495,6 +495,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 }
             }
         };
+        mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     // plays alert sound and handles if an alert is already playing
@@ -515,7 +516,9 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 mTimer.start();
             }
             if (mHapticsFlag) {
-                mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                if (mVibe == null) {
+                    mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     mVibe.vibrate(VibrationEffect.createOneShot(mHapticsDuration, VibrationEffect.DEFAULT_AMPLITUDE));
                 } else {
@@ -524,6 +527,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
             }
         } catch(Exception error) {
             error.printStackTrace();
+            mPlayer = null;
         }
     }
 
