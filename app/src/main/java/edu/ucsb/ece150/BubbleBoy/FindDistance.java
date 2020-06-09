@@ -95,8 +95,7 @@ public class FindDistance extends GraphicOverlay.Graphic {
      * Draws the face annotations for position on the supplied canvas.
      */
     void updateTooClose(boolean TooClose) {mTooClose = TooClose; }
-
-    //[TODO] change not to draw masks but tell distance from user to person
+    
     @Override
     public void draw(Canvas canvas) {
         Face face = mFace;

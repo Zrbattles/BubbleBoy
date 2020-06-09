@@ -309,10 +309,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         } else {
             requestCameraPermission();
         }
-        //[TODO] update so that selected saved noise is chosen
-        if (savedInstanceState != null) {
 
-        }
     }
 
     /**
