@@ -554,33 +554,33 @@ public class BubbleBoyActivity extends AppCompatActivity {
         if (mPlayer == null) {
             initAlertSoundPlayer();
         }
-        try {
-            if (mPlayer.isPlaying()) {
-                mPlayer.stop();
-                mTimer.cancel();
+        if (mPlayer.isPlaying()) {
+            mPlayer.stop();
+            mTimer.cancel();
+            try {
                 mPlayer.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
+                mPlayer.reset();
+                mPlayer.release();
+                mPlayer = null;
+                initAlertSoundPlayer();
             }
-
-            if (!mMuteFlag && mSoundPrepared) {
-                mPlayer.start();
-                mTimer.start();
-                mSoundPrepared = false;
+        }
+        if (!mMuteFlag && mSoundPrepared) {
+            mPlayer.start();
+            mTimer.start();
+            mSoundPrepared = false;
+        } else {
+            mPlayLaterFlag = true;
+        }
+        if (mHapticsFlag) {
+            mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mVibe.vibrate(VibrationEffect.createOneShot(mHapticsDuration, VibrationEffect.DEFAULT_AMPLITUDE));
             } else {
-                mPlayLaterFlag = true;
+                mVibe.vibrate(mHapticsDuration);
             }
-            if (mHapticsFlag) {
-                mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    mVibe.vibrate(VibrationEffect.createOneShot(mHapticsDuration, VibrationEffect.DEFAULT_AMPLITUDE));
-                } else {
-                    mVibe.vibrate(mHapticsDuration);
-                }
-            }
-        } catch(Exception error) {
-            error.printStackTrace();
-            mPlayer.reset();
-            mPlayer.release();
-            mPlayer = null;
         }
     }
 
