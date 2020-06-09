@@ -19,23 +19,16 @@ package edu.ucsb.ece150.BubbleBoy;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PointF;
 
 import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
 import com.google.android.gms.vision.face.Face;
-import com.google.android.gms.vision.face.Landmark;
-
-import java.util.List;
 
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
  * graphic overlay view.
  */
 public class FindDistance extends GraphicOverlay.Graphic {
-    private static final float FACE_POSITION_RADIUS = 10.0f;
     private static final float ID_TEXT_SIZE = 40.0f;
-    private static final float ID_Y_OFFSET = 50.0f;
-    private static final float ID_X_OFFSET = -50.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
 
     private static final int COLOR_CHOICES[] = {
@@ -56,7 +49,6 @@ public class FindDistance extends GraphicOverlay.Graphic {
     private volatile Face mFace;
     private int mFaceId;
     private int mMaskIndex;
-    private float mFaceHappiness;
     private boolean mTooClose = false;
 
     FindDistance(GraphicOverlay overlay) {
@@ -122,40 +114,17 @@ public class FindDistance extends GraphicOverlay.Graphic {
 
         switch (mMaskIndex) {
             default:
-                float x = translateX(face.getPosition().x + face.getWidth() / 2);
-                float y = translateY(face.getPosition().y + face.getHeight() / 2);
-
                 float left = translateX(face.getPosition().x);
                 float right = translateX(face.getPosition().x + face.getWidth());
                 float bottom = translateY(face.getPosition().y + face.getHeight());
                 float top = translateY(face.getPosition().y);
 
-                float id_x = x + ID_X_OFFSET;
-                float id_y = y + ID_Y_OFFSET;
 
-                //float hap_x = x - ID_X_OFFSET;
-                //float hap_y = y - ID_Y_OFFSET;
 
                 mFaceId = face.getId();
-                //mFaceHappiness = face.getIsSmilingProbability();
-
-                // [TODO] Draw real time masks for a single face
-                //canvas.drawCircle(x,y, FACE_POSITION_RADIUS, mFacePositionPaint);
+                //Draw square around each persons face
                 canvas.drawRect(left, top, right, bottom, mBoxPaint);
-
-                //canvas.drawText("happiness: "+ Float.toString(mFaceHappiness), hap_x, hap_y, mIdPaint);
                 break;
-            /*default:
-                List<Landmark> landmarks = face.getLandmarks();
-                //for (int j = 0; j < landmarks.size(); j++) {
-                    Landmark mark = landmarks.get(2);
-                    // 3 is mouth, 2 is nose
-                    PointF point = mark.getPosition();
-                    float x2 = translateX(point.x);
-                    float y2 = translateY(point.y);
-                    canvas.drawCircle(x2,y2, 5f, mFacePositionPaint);
-                //}
-                break;*/
         }
     }
 }

@@ -199,7 +199,7 @@ public class GraphicOverlay extends View {
                 canvas.drawText("Tilt Camera Up", xPos, 3 * yPos / 4, mIdPaint);
             }
             else{
-                canvas.drawText("Tilt Camera Up", xPos, 4 * yPos / 4, mIdPaint);
+                canvas.drawText("Tilt Camera Up", xPos, 5 * yPos / 4, mIdPaint);
             }
 
         }

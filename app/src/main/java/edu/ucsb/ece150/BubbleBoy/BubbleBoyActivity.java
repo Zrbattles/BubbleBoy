@@ -1,3 +1,4 @@
+//Created by Zach Battles and Chris Chan
 package edu.ucsb.ece150.BubbleBoy;
 
 import androidx.annotation.RequiresApi;
@@ -170,7 +171,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 infoNotify.setAction("CONFIRM", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ucsbece150s20bubbleboy.wordpress.com/"));
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ucsbece150s20bubbleboy.wordpress.com/help/"));
                         startActivity(browserIntent);
                     }
                 }).show();
@@ -916,7 +917,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
             mOverlay.remove(mFaceGraphic);
         }
 
-
+        // function to tell if someone is too close
         public boolean tooClose(Landmark nose, Landmark mouth){
             PointF npoint = nose.getPosition();
             PointF mpoint = mouth.getPosition();
