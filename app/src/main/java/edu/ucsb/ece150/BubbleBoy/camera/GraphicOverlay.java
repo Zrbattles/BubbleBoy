@@ -146,7 +146,7 @@ public class GraphicOverlay extends View {
         }
         postInvalidate();
     }
-
+    
 
     /**
      * Adds a graphic to the overlay.
