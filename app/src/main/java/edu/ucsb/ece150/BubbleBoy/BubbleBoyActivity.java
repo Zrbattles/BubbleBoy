@@ -71,8 +71,12 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM = 2; // Request code for Camera Permission
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 5;
 
-    private Button mCenterButton;
-    private Button mRightButton;
+    private Button mTestButton;
+    private Button mtiltButton;
+    private Button mInfoButton;
+
+    Snackbar infoNotify;
+
     //set up accelerometer
     private SensorManager sensMan;
     private float timestamp;
@@ -88,6 +92,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private String[] mSoundSettings = {"5 Seconds", "3 Seconds", "1 Second"};
     private Boolean mMuteFlag = false;
     private Button mMuteButton;
+
     private Boolean mTooClose = false;
     private Boolean mTooCloseAlert = true;
     private Boolean mSoundPrepared = false;
@@ -96,6 +101,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private Boolean mTiltUp = false;
     private Boolean mTiltDown = false;
     private Boolean mTiltOption = true;
+    private Boolean mTestingFlag = false;
 
     // set up private variables for haptics
     private Vibrator mVibe;
@@ -133,37 +139,70 @@ public class BubbleBoyActivity extends AppCompatActivity {
             mHapticsFlag = myPreferences.getBoolean("haptics_flag", true);
             mHapticsDuration = myPreferences.getInt("haptics_duration", 100);
             mMuteFlag = myPreferences.getBoolean("mute_flag", false);
+            mTiltOption = myPreferences.getBoolean("tilt_flag", true);
         } else {
             mAlertSound = Uri.parse(savedInstanceState.getString("alert_sound"));
             mMaxSoundDuration = savedInstanceState.getInt("max_sound_duration");
             mHapticsFlag = savedInstanceState.getBoolean("haptics_flag");
             mHapticsDuration = savedInstanceState.getInt("haptics_duration");
             mMuteFlag = savedInstanceState.getBoolean("mute_flag");
+            mTiltOption = savedInstanceState.getBoolean("tilt_flag");
         }
 
-        mCenterButton = (Button) findViewById(R.id.centerButton);
+        mTestButton = (Button) findViewById(R.id.testButton);
         initAlertSoundPlayer();
-        mCenterButton.setOnClickListener(new View.OnClickListener() {
+        mTestButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (!mTestingFlag) {
+                    mTestButton.setBackgroundColor(Color.RED);
+                    mTestingFlag = true;
+                }
                 playAlertSound();
             }
         });
-        mRightButton = (Button) findViewById(R.id.rightButton);
-        mRightButton.setOnClickListener(new View.OnClickListener() {
+
+        mInfoButton = (Button) findViewById(R.id.infoButton);
+        mInfoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mTiltOption == true) {
+                infoNotify = Snackbar.make(view, "Visit BubbleBoy Website?", Snackbar.LENGTH_LONG);
+                infoNotify.setAction("CONFIRM", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ucsbece150s20bubbleboy.wordpress.com/"));
+                        startActivity(browserIntent);
+                    }
+                }).show();
+            }
+        });
+
+        mtiltButton = (Button) findViewById(R.id.tiltButton);
+        if (mTiltOption) {
+            mtiltButton.setText("DISABLE TILT ASSIST");
+        } else {
+            mtiltButton.setText("ENABLE TILT ASSIST");
+        }
+        mtiltButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mTiltOption) {
                     mTiltOption = false;
                     mGraphicOverlay.clear();
+                    mtiltButton.setText("ENABLE TILT ASSIST");
+                    Toast.makeText(getApplicationContext(), "Tilt Assist Disabled! Press Again to Enable.", Toast.LENGTH_SHORT).show();
                 }
                 else{
                     mTiltOption = true;
+                    mtiltButton.setText("DISABLE TILT ASSIST");
+                    Toast.makeText(getApplicationContext(), "Tilt Assist Enabled! Press Again to Disable.", Toast.LENGTH_SHORT).show();
                 }
                 GraphicOverlay.updateTiltOption(mTiltOption);
 
             }
         });
+
+
 
         mMuteButton = findViewById(R.id.muteButton);
         if (mMuteFlag) {
@@ -531,6 +570,12 @@ public class BubbleBoyActivity extends AppCompatActivity {
             }
             @Override
             public void onFinish() {
+                if (mTestButton != null) {
+                    if (mTestingFlag) {
+                        mTestingFlag = false;
+                        mTestButton.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_dark_focused));
+                    }
+                }
                 if (mPlayer != null) {
                     if (mPlayer.isPlaying()) {
                         mPlayer.stop();
@@ -559,6 +604,12 @@ public class BubbleBoyActivity extends AppCompatActivity {
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
+                if (mTestButton != null) {
+                    if (mTestingFlag) {
+                        mTestingFlag = false;
+                        mTestButton.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_dark_focused));
+                    }
+                }
                 mTimer.cancel();
                 mPlayer.stop();
                 try {
@@ -656,6 +707,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         editor.putBoolean("haptics_flag", mHapticsFlag);
         editor.putInt("haptics_duration", mHapticsDuration);
         editor.putBoolean("mute_flag", mMuteFlag);
+        editor.putBoolean("tilt_flag", mTiltOption);
         editor.apply();
         mPreview.stop();
     }
@@ -745,6 +797,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         savedInstanceState.putBoolean("haptics_flag", mHapticsFlag);
         savedInstanceState.putInt("haptics_duration", mHapticsDuration);
         savedInstanceState.putBoolean("mute_flag", mMuteFlag);
+        savedInstanceState.putBoolean("tilt_flag", mTiltOption);
     }
 
     @Override

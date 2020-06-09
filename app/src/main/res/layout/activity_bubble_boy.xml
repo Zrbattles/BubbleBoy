@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
     tools:context=".BubbleBoyActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/appToolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:elevation="4dp"
         android:background="@android:color/background_dark"
+        android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Dark">
 
@@ -30,37 +30,70 @@
             android:textColor="#FFFFFF"
             android:translationX="-15dp" />
 
+        <Button
+            android:id="@+id/infoButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="right|top"
+            android:background="@color/common_google_signin_btn_text_dark_focused"
+            android:foreground="@drawable/help_info_foreground"
+            android:minWidth="48dip"
+            android:textColor="#FFFFFF"
+            android:translationX="-25dp" />
+
     </androidx.appcompat.widget.Toolbar>
 
 
     <Button
-        android:id="@+id/centerButton"
+        android:id="@+id/testButton"
+        style="@style/Widget.AppCompat.Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:text="Test Sound" />
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/common_google_signin_btn_text_dark_focused"
+        android:lineSpacingExtra="8sp"
+        android:padding="10dp"
+        android:text="Test Alert Event" />
+
 
     <Button
-        android:id="@+id/rightButton"
+        android:id="@+id/tiltButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/cameraDisplay"
         android:layout_alignRight="@id/appToolbar"
         android:layout_alignParentBottom="true"
-        android:text="Tilt" />
-
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/common_google_signin_btn_text_dark_focused"
+        android:hapticFeedbackEnabled="true"
+        android:padding="10dp"
+        android:text="Disable Tilt Assist" />
 
     <FrameLayout
         android:id="@+id/cameraDisplay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/centerButton"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
         android:layout_alignWithParentIfMissing="true"
-        android:background="@android:color/darker_gray"
-        android:layout_gravity="center">
+        android:layout_above="@id/testButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="center"
+        android:background="?android:attr/colorBackground">
 
         <edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview
             android:id="@+id/preview"
@@ -70,7 +103,8 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
-            android:layout_gravity="center">
+            android:layout_gravity="center"
+            android:background="?android:attr/colorBackground">
 
             <edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay
                 android:id="@+id/faceOverlay"
