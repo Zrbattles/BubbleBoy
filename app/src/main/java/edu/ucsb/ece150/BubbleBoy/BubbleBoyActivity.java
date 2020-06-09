@@ -91,6 +91,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private Boolean mTooCloseAlert = true;
     private Boolean mSoundPrepared = false;
     private Boolean mPlayLaterFlag = false;
+    private int mTimer2Duration = 1000;
 
     // set up private variables for haptics
     private Vibrator mVibe;
@@ -137,6 +138,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         }
 
         mCenterButton = (Button) findViewById(R.id.centerButton);
+        initAlertSoundPlayer();
         mCenterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -212,7 +214,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
             }
         };
         sensMan.registerListener(accelerometerSensorListener,accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        mTimer2 = new CountDownTimer(mMaxSoundDuration, mMaxSoundDuration) {
+        mTimer2 = new CountDownTimer(mTimer2Duration, mTimer2Duration) {
             @Override
             public void onTick(long l) {
             }
