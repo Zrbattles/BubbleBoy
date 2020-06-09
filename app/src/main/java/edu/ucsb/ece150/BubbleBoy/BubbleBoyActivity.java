@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.PointF;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -42,9 +43,11 @@ import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
+import com.google.android.gms.vision.face.Landmark;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
+import java.util.List;
 
 import edu.ucsb.ece150.BubbleBoy.camera.CameraSourcePreview;
 import edu.ucsb.ece150.BubbleBoy.camera.GraphicOverlay;
@@ -83,6 +86,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private String[] mSoundSettings = {"5 Seconds", "3 Seconds", "1 Second"};
     private Boolean mMuteFlag = false;
     private Button mMuteButton;
+    private Boolean mTooClose = false;
 
     // set up private variables for haptics
     private Vibrator mVibe;
@@ -426,7 +430,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         // 2. Create a FaceDetector object for real time detection
         //    Ref: https://developers.google.com/vision/android/face-tracker-tutorial
         FaceDetector realTimeDetector = new FaceDetector.Builder(faceDetectorContext)
-               // .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
                 .setMode (FaceDetector.FAST_MODE)
                 .build();
         // 4. Create a GraphicFaceTrackerFactory
@@ -707,6 +711,14 @@ public class BubbleBoyActivity extends AppCompatActivity {
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
             mOverlay.add(mFaceGraphic);
+            List<Landmark> landmarks = face.getLandmarks();
+            Landmark nose = landmarks.get(2);
+            Landmark mouth = landmarks.get(3);
+            mTooClose = tooClose(nose,mouth);
+            if(mTooClose == true){
+                playAlertSound();
+            }
+            mFaceGraphic.updateTooClose(mTooClose);
             mFaceGraphic.updateFace(face);
             mFaceGraphic.updateMask(current_mask_index);
         }
@@ -729,5 +741,17 @@ public class BubbleBoyActivity extends AppCompatActivity {
         public void onDone() {
             mOverlay.remove(mFaceGraphic);
         }
+
+
+        public boolean tooClose(Landmark nose, Landmark mouth){
+            PointF npoint = nose.getPosition();
+            PointF mpoint = mouth.getPosition();
+            float distance = (float) Math.sqrt((npoint.x-mpoint.x)*(npoint.x-mpoint.x) + (npoint.y-mpoint.y)*(npoint.y-mpoint.y));
+            if(distance <= 16.5)
+                return false;
+            else
+                return true;
+        }
     }
+
 }

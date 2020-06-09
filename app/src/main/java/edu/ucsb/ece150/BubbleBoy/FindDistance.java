@@ -38,7 +38,16 @@ public class FindDistance extends GraphicOverlay.Graphic {
     private static final float ID_X_OFFSET = -50.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
 
-
+    private static final int COLOR_CHOICES[] = {
+            Color.BLUE,
+            Color.CYAN,
+            Color.GREEN,
+            Color.MAGENTA,
+            Color.RED,
+            Color.WHITE,
+            Color.YELLOW
+    };
+    private static int mCurrentColorIndex = 0;
 
     private Paint mFacePositionPaint;
     private Paint mIdPaint;
@@ -48,10 +57,28 @@ public class FindDistance extends GraphicOverlay.Graphic {
     private int mFaceId;
     private int mMaskIndex;
     private float mFaceHappiness;
+    private boolean mTooClose = false;
 
     FindDistance(GraphicOverlay overlay) {
         super(overlay);
 
+        mCurrentColorIndex = (mCurrentColorIndex + 1) % COLOR_CHOICES.length;
+        int selectedColor = COLOR_CHOICES[2];
+        if(mTooClose == true) {
+            selectedColor = COLOR_CHOICES[4];
+        }
+
+        mFacePositionPaint = new Paint();
+        mFacePositionPaint.setColor(selectedColor);
+
+        mIdPaint = new Paint();
+        mIdPaint.setColor(selectedColor);
+        mIdPaint.setTextSize(ID_TEXT_SIZE);
+
+        mBoxPaint = new Paint();
+        mBoxPaint.setColor(selectedColor);
+        mBoxPaint.setStyle(Paint.Style.STROKE);
+        mBoxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
     }
 
     void setId(int id) {
@@ -75,6 +102,8 @@ public class FindDistance extends GraphicOverlay.Graphic {
     /**
      * Draws the face annotations for position on the supplied canvas.
      */
+    void updateTooClose(boolean TooClose) {mTooClose = TooClose; }
+
     //[TODO] change not to draw masks but tell distance from user to person
     @Override
     public void draw(Canvas canvas) {
@@ -82,9 +111,17 @@ public class FindDistance extends GraphicOverlay.Graphic {
         if (face == null) {
             return;
         }
+        if(mTooClose == true){
+            mBoxPaint.setColor(Color.RED);
+        }
+        else {
+            mBoxPaint.setColor(Color.GREEN);
+        }
+
+
 
         switch (mMaskIndex) {
-            case 0:
+            default:
                 float x = translateX(face.getPosition().x + face.getWidth() / 2);
                 float y = translateY(face.getPosition().y + face.getHeight() / 2);
 
@@ -103,23 +140,22 @@ public class FindDistance extends GraphicOverlay.Graphic {
                 //mFaceHappiness = face.getIsSmilingProbability();
 
                 // [TODO] Draw real time masks for a single face
-                canvas.drawCircle(x,y, FACE_POSITION_RADIUS, mFacePositionPaint);
+                //canvas.drawCircle(x,y, FACE_POSITION_RADIUS, mFacePositionPaint);
                 canvas.drawRect(left, top, right, bottom, mBoxPaint);
-                canvas.drawText("id: " + Integer.toString(mFaceId), id_x, id_y, mIdPaint);
+                //canvas.drawText("id: " + Integer.toString(mFaceId), id_x, id_y, mIdPaint);
                 //canvas.drawText("happiness: "+ Float.toString(mFaceHappiness), hap_x, hap_y, mIdPaint);
                 break;
-            case 1:
+            /*default:
                 List<Landmark> landmarks = face.getLandmarks();
-                for (int j = 0; j < landmarks.size(); j++) {
-                    Landmark mark = landmarks.get(j);
+                //for (int j = 0; j < landmarks.size(); j++) {
+                    Landmark mark = landmarks.get(2);
+                    // 3 is mouth, 2 is nose
                     PointF point = mark.getPosition();
                     float x2 = translateX(point.x);
                     float y2 = translateY(point.y);
                     canvas.drawCircle(x2,y2, 5f, mFacePositionPaint);
-                }
-                break;
-            default:
-                break;
+                //}
+                break;*/
         }
     }
 }
