@@ -89,6 +89,8 @@ public class BubbleBoyActivity extends AppCompatActivity {
     private Button mMuteButton;
     private Boolean mTooClose = false;
     private Boolean mTooCloseAlert = true;
+    private Boolean mSoundPrepared = false;
+    private Boolean mPlayLaterFlag = false;
 
     // set up private variables for haptics
     private Vibrator mVibe;
@@ -303,14 +305,17 @@ public class BubbleBoyActivity extends AppCompatActivity {
                                 switch (i) {
                                     case 0:
                                         mMaxSoundDuration = 5000;
+                                        initAlertSoundPlayer();
                                         Toast.makeText(getApplicationContext(), "Alert Sound Max Duration set to 5 Seconds.", Toast.LENGTH_SHORT).show();
                                         break;
                                     case 1:
                                         mMaxSoundDuration = 3000;
+                                        initAlertSoundPlayer();
                                         Toast.makeText(getApplicationContext(), "Alert Sound Max Duration set to 3 Seconds.", Toast.LENGTH_SHORT).show();
                                         break;
                                     case 2:
                                         mMaxSoundDuration = 1000;
+                                        initAlertSoundPlayer();
                                         Toast.makeText(getApplicationContext(), "Alert Sound Max Duration set to 1 Second.", Toast.LENGTH_SHORT).show();
                                         break;
                                     default:
@@ -324,7 +329,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 break;
             case R.id.hapticSettings:
                 AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-                builder1.setTitle("Haptic Feedback Duration Settings")
+                builder1.setTitle("Haptic Feedback Duration")
                         .setItems(mHapticSettings, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
@@ -371,6 +376,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
                                 mHapticsDuration = 125;
                                 mMaxSoundDuration = 1000;
                                 mMuteFlag = false;
+                                initAlertSoundPlayer();
                                 if (mMuteFlag) {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                         mMuteButton.setForeground(getApplicationContext().getDrawable(R.drawable.sound_off_foreground));
@@ -490,23 +496,55 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 if (mPlayer != null) {
                     if (mPlayer.isPlaying()) {
                         mPlayer.stop();
-                        mPlayer.release();
-                        mPlayer = null;
+                        try {
+                            mPlayer.prepare();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            mPlayer.reset();
+                            mPlayer.release();
+                            mPlayer = null;
+                        }
                     }
                 }
             }
         };
+        if (mPlayer != null) {
+            if (mPlayer.isPlaying()) {
+                mPlayer.stop();
+            }
+            mPlayer.reset();
+            mPlayer.release();
+            mPlayer = null;
+        }
         mPlayer = MediaPlayer.create(this, mAlertSound);
+        mSoundPrepared = true;
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
-                mPlayer.reset();
-                mPlayer.release();
-                mPlayer = null;
+                mPlayer.stop();
+                try {
+                    mPlayer.prepare();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    mPlayer.reset();
+                    mPlayer.release();
+                    mPlayer = null;
+                }
                 mTimer.cancel();
             }
         });
-
+        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                mSoundPrepared = true;
+                if (!mMuteFlag && mPlayLaterFlag) {
+                    mPlayer.start();
+                    mTimer.start();
+                    mSoundPrepared = false;
+                    mPlayLaterFlag = false;
+                }
+            }
+        });
     }
 
     // plays alert sound and handles if an alert is already playing
@@ -517,14 +555,16 @@ public class BubbleBoyActivity extends AppCompatActivity {
         try {
             if (mPlayer.isPlaying()) {
                 mPlayer.stop();
-                mPlayer.release();
+                mPlayer.prepare();
                 mTimer.cancel();
-                initAlertSoundPlayer();
             }
 
-            if (!mMuteFlag) {
+            if (!mMuteFlag && mSoundPrepared) {
                 mPlayer.start();
                 mTimer.start();
+                mSoundPrepared = false;
+            } else {
+                mPlayLaterFlag = true;
             }
             if (mHapticsFlag) {
                 mVibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -536,6 +576,9 @@ public class BubbleBoyActivity extends AppCompatActivity {
             }
         } catch(Exception error) {
             error.printStackTrace();
+            mPlayer.reset();
+            mPlayer.release();
+            mPlayer = null;
         }
     }
 
@@ -555,6 +598,14 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if (mPlayer != null) {
+            if (mPlayer.isPlaying()) {
+                mPlayer.stop();
+            }
+            mPlayer.reset();
+            mPlayer.release();
+            mPlayer = null;
+        }
         SharedPreferences myPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = myPreferences.edit();
         if (mAlertSound != null) {
@@ -579,6 +630,14 @@ public class BubbleBoyActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        if (mPlayer != null) {
+            if (mPlayer.isPlaying()) {
+                mPlayer.stop();
+            }
+            mPlayer.reset();
+            mPlayer.release();
+            mPlayer = null;
+        }
         if (mCameraSource != null) {
             mCameraSource.release();
         }
@@ -630,6 +689,14 @@ public class BubbleBoyActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        if (mPlayer != null) {
+            if (mPlayer.isPlaying()) {
+                mPlayer.stop();
+            }
+            mPlayer.reset();
+            mPlayer.release();
+            mPlayer = null;
+        }
         if (mAlertSound != null) {
             savedInstanceState.putString("alert_sound", mAlertSound.toString());
         } else {
@@ -647,6 +714,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RINGTONE_PICK_REQUEST_CODE) {
             mAlertSound = data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI);
+            initAlertSoundPlayer();
         }
     }
 
@@ -728,7 +796,7 @@ public class BubbleBoyActivity extends AppCompatActivity {
             Landmark nose = landmarks.get(2);
             Landmark mouth = landmarks.get(3);
             mTooClose = tooClose(nose,mouth);
-            if(mTooClose == true && mTooCloseAlert == true){
+            if(mTooClose && mTooCloseAlert){
                 mTooCloseAlert = false;
                 mTimer2.start();
                 playAlertSound();
