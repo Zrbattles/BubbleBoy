@@ -667,6 +667,10 @@ public class BubbleBoyActivity extends AppCompatActivity {
                 mVibe.vibrate(mHapticsDuration);
             }
         }
+        if (mMuteFlag) {
+            mTestingFlag = false;
+            mTestButton.setBackgroundColor(getResources().getColor(R.color.common_google_signin_btn_text_dark_focused));
+        }
     }
 
     /**
